@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Error - VeriFact{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-box">
+        <span class="big-emoji">😕</span>
+        <h1>Oops! Something Went Wrong</h1>
+        <p>{{ error if error else 'An unexpected error occurred. Please try again later.' }}</p>
+        <a href="{{ url_for('home') }}" class="btn">Go Home</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-page {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 120px 20px 60px;
+        text-align: center;
+        background: #0f172a;
+    }
+
+    .error-box .big-emoji {
+        font-size: 72px;
+        display: block;
+        margin-bottom: 16px;
+    }
+
+    .error-box h1 {
+        font-size: 36px;
+        margin-bottom: 8px;
+        color: #f1f5f9;
+    }
+
+    .error-box p {
+        color: #94a3b8;
+        font-size: 17px;
+        margin-bottom: 28px;
+    }
+
+    .error-box .btn {
+        padding: 14px 40px;
+        border-radius: 30px;
+        background: #38bdf8;
+        color: #0f172a;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+
+    .error-box .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px rgba(56, 189, 248, 0.3);
+    }
+</style>
+{% endblock %}

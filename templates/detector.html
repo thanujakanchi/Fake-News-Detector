@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}News Detector - VeriFact{% endblock %}
+
+{% block content %}
+<div class="detector-page">
+    <div class="detector-box">
+        <h1>🔍 News Detector</h1>
+        <p class="sub">Paste any news claim to verify its authenticity</p>
+
+        <form method="POST">
+            <textarea 
+                name="news" 
+                placeholder="Enter news article or claim here..."
+                required
+            >{{ input_text if input_text else '' }}</textarea>
+
+            <!-- Groq AI Toggle -->
+            <div style="margin: 12px 0;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #94a3b8; font-size: 14px;">
+                    <input type="checkbox" name="use_groq" {% if use_groq %}checked{% endif %}>
+                    🤖 Enable Groq AI Web Search
+                </label>
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">
+                    Searches the web and analyzes results using AI
+                </small>
+            </div>
+
+            <button type="submit" class="detect-btn">🔍 Analyze Text</button>
+        </form>
+
+        <!-- Result -->
+        {% if prediction %}
+        <div class="result-box">
+            <div class="prediction {% if 'Real' in prediction %}real{% elif 'Fake' in prediction %}fake{% else %}uncertain{% endif %}">
+                {{ prediction }}
+            </div>
+
+            <div class="result-grid">
+                <div class="result-item">
+                    <label>Category</label>
+                    <div class="value">{{ category }}</div>
+                </div>
+                <div class="result-item">
+                    <label>Confidence</label>
+                    <div class="value">{{ "%.1f"|format(confidence) if confidence else "N/A" }}%</div>
+                </div>
+                {% if groq_used %}
+                <div class="result-item" style="grid-column: 1 / -1;">
+                    <label>🤖 Groq AI Analysis</label>
+                    <div class="value" style="font-size: 13px; color: #38bdf8;">Verified using Groq AI web search</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="reason">
+                <strong>Analysis:</strong> {{ reason }}
+            </div>
+
+            {% if groq_response %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #1e293b;">
+                <strong style="color: #94a3b8; font-size: 13px;">📝 Full AI Response:</strong>
+                <div style="background: #0f172a; padding: 15px; border-radius: 8px; margin-top: 8px; font-size: 14px; color: #cbd5e1; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+                    {{ groq_response }}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if sources %}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #1e293b;">
+                <strong style="color: #94a3b8; font-size: 13px;">📚 Sources:</strong>
+                <ul style="list-style: none; margin-top: 10px;">
+                    {% for source in sources %}
+                    <li style="padding: 8px 12px; background: #1e293b; border-radius: 6px; margin-bottom: 6px;">
+                        <a href="{{ source }}" target="_blank" style="color: #38bdf8; text-decoration: none; word-break: break-all;">
+                            {{ source }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

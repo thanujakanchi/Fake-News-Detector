@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Features - VeriFact{% endblock %}
+
+{% block content %}
+<div class="features-page">
+    <div class="features-container">
+        <div class="features-header">
+            <h1>✨ Features</h1>
+            <p>Discover what makes VeriFact powerful</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="icon">🤖</span>
+                <h3>AI-Powered Detection</h3>
+                <p>Uses Machine Learning to analyze text patterns and classify news with high accuracy.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">⚡</span>
+                <h3>Real-Time Analysis</h3>
+                <p>Get instant predictions with confidence scores in milliseconds.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">🎯</span>
+                <h3>Category Detection</h3>
+                <p>Automatically identifies news categories like Technology, Sports, Politics, and more.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">📊</span>
+                <h3>Analytics Dashboard</h3>
+                <p>Track your detection history with real-time statistics.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">✅</span>
+                <h3>Known Fact Verification</h3>
+                <p>Instantly identifies known true and fake facts from our curated database.</p>
+            </div>
+
+            <div class="feature-card">
+                <span class="icon">🔒</span>
+                <h3>Secure & Reliable</h3>
+                <p>Processes user input securely and provides reliable predictions.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .features-page {
+        min-height: 100vh;
+        padding: 120px 20px 60px;
+        background: #0f172a;
+    }
+
+    .features-container {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .features-header {
+        text-align: center;
+        margin-bottom: 48px;
+    }
+
+    .features-header h1 {
+        font-size: 40px;
+        color: #38bdf8;
+        margin-bottom: 8px;
+    }
+
+    .features-header p {
+        color: #94a3b8;
+        font-size: 18px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+    }
+
+    .feature-card {
+        background: #1e293b;
+        padding: 30px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        border-color: #38bdf8;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .feature-card .icon {
+        font-size: 36px;
+        display: block;
+        margin-bottom: 14px;
+    }
+
+    .feature-card h3 {
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: #f1f5f9;
+    }
+
+    .feature-card p {
+        color: #94a3b8;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+</style>
+{% endblock %}

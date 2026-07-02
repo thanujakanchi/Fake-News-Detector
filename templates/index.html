@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}VeriFact - AI Fake News Detector{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Detect <span class="gradient">Fake News</span> Instantly</h1>
+        <p class="tagline">AI-powered verification for news & facts</p>
+        <p class="subtitle">Paste any text and get instant authenticity analysis</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('detector') }}" class="btn-primary">🚀 Try Now</a>
+            <a href="{{ url_for('features') }}" class="btn-secondary">Learn More</a>
+        </div>
+
+        <div class="how-section">
+            <h2>How It Works</h2>
+            <div class="how-grid">
+                <div class="how-card">
+                    <span class="num">1</span>
+                    <h4>Enter Text</h4>
+                    <p>Paste any news article or statement</p>
+                </div>
+                <div class="how-card">
+                    <span class="num">2</span>
+                    <h4>AI Analyzes</h4>
+                    <p>ML model processes the content</p>
+                </div>
+                <div class="how-card">
+                    <span class="num">3</span>
+                    <h4>Get Results</h4>
+                    <p>Prediction with confidence score</p>
+                </div>
+                <div class="how-card">
+                    <span class="num">4</span>
+                    <h4>Track Stats</h4>
+                    <p>View analytics on dashboard</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="examples-section">
+            <h3>💡 Try These Examples</h3>
+            <div class="examples-grid">
+                <div class="example-item true" onclick="copyToDetector('The Earth revolves around the sun and water boils at 100 degrees Celsius.')">
+                    <span class="badge">Real</span>
+                    <span class="text">"The Earth revolves around the sun"</span>
+                </div>
+                <div class="example-item fake" onclick="copyToDetector('The moon is made of cheese and humans can breathe in space.')">
+                    <span class="badge">Fake</span>
+                    <span class="text">"The moon is made of cheese"</span>
+                </div>
+                <div class="example-item true" onclick="copyToDetector('India gained independence in 1947 and is located in Asia.')">
+                    <span class="badge">Real</span>
+                    <span class="text">"India gained independence in 1947"</span>
+                </div>
+                <div class="example-item fake" onclick="copyToDetector('The Earth is flat and the sun revolves around the Earth.')">
+                    <span class="badge">Fake</span>
+                    <span class="text">"The Earth is flat"</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToDetector(text) {
+    sessionStorage.setItem('example_text', text);
+    window.location.href = "{{ url_for('detector') }}";
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const text = sessionStorage.getItem('example_text');
+    if (text && window.location.pathname === '/detector') {
+        const ta = document.getElementById('news-input');
+        if (ta) { ta.value = text; ta.dispatchEvent(new Event('input')); }
+        sessionStorage.removeItem('example_text');
+    }
+});
+</script>
+{% endblock %}
+
+
+

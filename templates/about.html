@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}About - VeriFact{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <div class="about-container">
+        <div class="about-header">
+            <h1>About VeriFact</h1>
+            <p>Your trusted partner in news verification</p>
+        </div>
+
+        <div class="about-content">
+            <h2>🎯 Our Mission</h2>
+            <p>To empower users with AI-powered tools to quickly and accurately verify the authenticity of news content.</p>
+
+            <h2>🚀 How It Works</h2>
+            <p>VeriFact uses Machine Learning and Natural Language Processing to analyze text patterns and determine if news is real or fake.</p>
+
+            <h2>🛠️ Technology Stack</h2>
+            <div class="tech-stack">
+                <span class="tech-tag">Python</span>
+                <span class="tech-tag">Flask</span>
+                <span class="tech-tag">Scikit-learn</span>
+                <span class="tech-tag">Pandas</span>
+                <span class="tech-tag">HTML/CSS</span>
+            </div>
+
+            <h2>📊 Model Performance</h2>
+            <p>Our model achieves high accuracy in distinguishing between authentic and misleading content.</p>
+
+            <h2>🔐 Privacy & Security</h2>
+            <p>Your data is not stored permanently. All analyses are performed in real-time.</p>
+        </div>
+
+        <div class="about-footer">
+            <p>Built with ❤️ for truth and transparency</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-page {
+        min-height: 100vh;
+        padding: 120px 20px 60px;
+        background: #0f172a;
+    }
+
+    .about-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .about-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .about-header h1 {
+        font-size: 40px;
+        color: #38bdf8;
+        margin-bottom: 6px;
+    }
+
+    .about-header p {
+        color: #94a3b8;
+        font-size: 18px;
+    }
+
+    .about-content {
+        background: #1e293b;
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .about-content h2 {
+        font-size: 22px;
+        margin: 28px 0 12px;
+        color: #f1f5f9;
+    }
+
+    .about-content h2:first-child {
+        margin-top: 0;
+    }
+
+    .about-content p {
+        color: #cbd5e1;
+        font-size: 16px;
+        line-height: 1.8;
+        margin-bottom: 12px;
+    }
+
+    .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0;
+    }
+
+    .tech-tag {
+        padding: 6px 18px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        background: rgba(56, 189, 248, 0.12);
+        color: #38bdf8;
+        border: 1px solid rgba(56, 189, 248, 0.15);
+    }
+
+    .about-footer {
+        text-align: center;
+        margin-top: 32px;
+        color: #94a3b8;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
