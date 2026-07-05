@@ -6,6 +6,7 @@ import os
 import logging
 import traceback
 from pathlib import Path
+import pandas as pd
 
 from flask import Flask, render_template, request, jsonify, session, flash
 from flask_session import Session
@@ -49,21 +50,57 @@ analytics = NewsAnalytics()
 
 
 def initialize_model():
-    """Initialize the model - load if exists, otherwise train."""
+    """
+    Initialize the model - load if exists, otherwise train on smaller dataset.
+    Optimized for Render free tier (512 MB RAM limit)
+    """
     try:
         if MODEL_PATH.exists() and VECTORIZER_PATH.exists():
             logger.info("Loading existing model...")
             classifier.load(MODEL_PATH, VECTORIZER_PATH)
+            logger.info("✅ Model loaded successfully!")
         else:
-            logger.info("Model not found. Training new model...")
-            metrics = classifier.train(FAKE_DATASET_PATH, TRUE_DATASET_PATH)
-            classifier.save(MODEL_PATH, VECTORIZER_PATH)
-            logger.info(f"Training completed with accuracy: {metrics['accuracy']:.4f}")
+            logger.info("Model not found. Training new model with optimized dataset...")
+            train_model_optimized()
+            
     except Exception as e:
         logger.warning(f"Failed to load model, retraining... Error: {e}")
-        metrics = classifier.train(FAKE_DATASET_PATH, TRUE_DATASET_PATH)
+        try:
+            train_model_optimized()
+        except Exception as retry_error:
+            logger.error(f"Retraining also failed: {retry_error}")
+            logger.warning("App will run with fallback detection only (no ML model)")
+
+
+def train_model_optimized():
+    """
+    Train model on smaller dataset to fit within 512 MB RAM limit.
+    Uses only 3000 samples for training.
+    """
+    try:
+        logger.info("Loading optimized dataset (3000 samples per class)...")
+        
+        # Load only 3000 samples per class to save memory
+        fake = pd.read_csv(FAKE_DATASET_PATH, nrows=3000)
+        true = pd.read_csv(TRUE_DATASET_PATH, nrows=3000)
+        
+        # Combine and prepare data
+        data = pd.concat([fake, true], ignore_index=True)
+        data['label'] = [0]*3000 + [1]*3000
+        data['content'] = data['title'].fillna('') + " " + data['text'].fillna('')
+        
+        logger.info(f"Training on {len(data)} samples...")
+        
+        # Train model
+        metrics = classifier.train_on_dataframe(data)
         classifier.save(MODEL_PATH, VECTORIZER_PATH)
-        logger.info(f"Retraining completed with accuracy: {metrics['accuracy']:.4f}")
+        
+        logger.info(f"✅ Training completed with accuracy: {metrics['accuracy']:.4f}")
+        logger.info(f"📊 Model saved to {MODEL_PATH}")
+        
+    except Exception as e:
+        logger.error(f"Training failed: {e}")
+        raise
 
 
 def validate_input(text: str) -> tuple:
@@ -81,7 +118,8 @@ def validate_input(text: str) -> tuple:
 
 
 # Initialize model on startup
-initialize_model()
+with app.app_context():
+    initialize_model()
 
 
 @app.route('/')
@@ -140,7 +178,7 @@ def detector():
                 )
             
             # ===== STEP 2: GROQ AI WEB SEARCH (ALWAYS ENABLED) =====
-            logger.info(f"AI to verify: {cleaned_text}")
+            logger.info(f"Using Groq AI to verify: {cleaned_text}")
             groq_result = detect_with_groq(cleaned_text)
             
             if groq_result['success']:
