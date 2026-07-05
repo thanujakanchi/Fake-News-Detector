@@ -5,19 +5,19 @@ Utility functions for the fake news detection application.
 import re
 import logging
 import os
+import requests
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
 from dotenv import load_dotenv
-from groq import Groq
 
 # Load environment variables
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Initialize Groq client
+# Initialize Groq API settings
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
 # ===== TEXT CLEANING =====
@@ -197,23 +197,27 @@ def detect_math_equation(text: str) -> dict:
         }
 
 
-# ===== GROQ AI WEB SEARCH =====
+# ===== GROQ AI WEB SEARCH (Using requests) =====
 
 def detect_with_groq(text: str) -> dict:
     """
-    Use Groq AI with web search to verify news claims.
-    IMPROVED: Better parsing of verdict.
+    Use Groq API with requests library to verify news claims.
     """
-    if not groq_client:
+    if not GROQ_API_KEY:
         return {
             'success': False,
-            'error': 'Groq API key not configured.'
+            'error': 'Groq API key not configured. Please add GROQ_API_KEY to .env file.'
         }
     
     try:
-        # Force Groq to give a structured response
-        completion = groq_client.chat.completions.create(
-            messages=[
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "model": "llama-3.3-70b-versatile",
+            "messages": [
                 {"role": "system", "content": """You are a fact-checking AI. 
                 
                 IMPORTANT: Start your response with either:
@@ -221,104 +225,68 @@ def detect_with_groq(text: str) -> dict:
                 - "VERDICT: FAKE" if the claim is false
                 - "VERDICT: UNCERTAIN" if you're not sure
                 
-                Then explain why."""},
+                Then explain why in one sentence."""},
                 {"role": "user", "content": f"Verify this claim: '{text[:200]}'"}
             ],
-            model="llama-3.3-70b-versatile",
-            max_tokens=200,
-            temperature=0.3,
-        )
-        
-        response = completion.choices[0].message.content
-        
-        # === IMPROVED PARSING ===
-        verdict = "UNCERTAIN"
-        confidence = 50
-        reasoning = response
-        sources = []
-        
-        response_lower = response.lower()
-        
-        # === CHECK FOR VERDICT PATTERNS ===
-        # Check if response starts with VERDICT:
-        if "verdict:" in response_lower:
-            # Extract the verdict line
-            for line in response.split('\n'):
-                if "verdict:" in line.lower():
-                    line_lower = line.lower()
-                    if "real" in line_lower or "true" in line_lower:
-                        verdict = "REAL"
-                    elif "fake" in line_lower or "false" in line_lower:
-                        verdict = "FAKE"
-                    elif "uncertain" in line_lower:
-                        verdict = "UNCERTAIN"
-                    break
-        
-        # === SECOND PASS: Check entire response ===
-        if verdict == "UNCERTAIN":
-            # Check for fake indicators (stronger weight)
-            fake_indicators = [
-                "incorrect", "false", "wrong", "not true", "is false", 
-                "is incorrect", "wrongly", "mistaken", "actually",
-                "however", "but actually", "in reality", "factually incorrect"
-            ]
-            real_indicators = [
-                "correct", "true", "right", "accurate", "verified", 
-                "is true", "is correct", "factually correct"
-            ]
-            
-            fake_count = sum(1 for word in fake_indicators if word in response_lower)
-            real_count = sum(1 for word in real_indicators if word in response_lower)
-            
-            # Check if "sum" and "is 8" - explicit math check
-            if "sum" in response_lower and "7" in response_lower:
-                # This is a math correction - it means the claim was false
-                if "not" in response_lower or "incorrect" in response_lower or "false" in response_lower:
-                    fake_count += 3  # Strong indication of fake
-            
-            if fake_count > real_count:
-                verdict = "FAKE"
-                confidence = 85
-            elif real_count > fake_count:
-                verdict = "REAL"
-                confidence = 80
-        
-        # === THIRD PASS: Check first 100 characters ===
-        if verdict == "UNCERTAIN":
-            first_100 = response_lower[:100]
-            if "false" in first_100 or "incorrect" in first_100 or "wrong" in first_100:
-                verdict = "FAKE"
-                confidence = 80
-            elif "true" in first_100 or "correct" in first_100:
-                verdict = "REAL"
-                confidence = 80
-        
-        # === FOURTH PASS: Confidence adjustment ===
-        if verdict == "FAKE" and confidence < 60:
-            confidence = 75
-        elif verdict == "REAL" and confidence < 60:
-            confidence = 70
-        
-        # Extract reasoning (remove VERDICT line if present)
-        lines = response.split('\n')
-        reasoning_lines = []
-        for line in lines:
-            if not line.lower().startswith("verdict:"):
-                reasoning_lines.append(line)
-        reasoning = '\n'.join(reasoning_lines).strip()
-        
-        if not reasoning:
-            reasoning = response
-        
-        return {
-            'success': True,
-            'verdict': verdict,
-            'confidence': confidence,
-            'full_response': response,
-            'reasoning': reasoning,
-            'sources': sources
+            "max_tokens": 150,
+            "temperature": 0.3
         }
         
+        response = requests.post(GROQ_URL, headers=headers, json=data, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            content = result['choices'][0]['message']['content']
+            
+            # === PARSE RESPONSE ===
+            verdict = "UNCERTAIN"
+            confidence = 50
+            response_lower = content.lower()
+            
+            # Check for VERDICT pattern
+            if "verdict:" in response_lower:
+                for line in content.split('\n'):
+                    if "verdict:" in line.lower():
+                        line_lower = line.lower()
+                        if "real" in line_lower or "true" in line_lower:
+                            verdict = "REAL"
+                            confidence = 85
+                        elif "fake" in line_lower or "false" in line_lower:
+                            verdict = "FAKE"
+                            confidence = 85
+                        elif "uncertain" in line_lower:
+                            verdict = "UNCERTAIN"
+                            confidence = 50
+                        break
+            
+            # If no verdict found, check for keywords
+            if verdict == "UNCERTAIN":
+                if "incorrect" in response_lower or "false" in response_lower or "wrong" in response_lower:
+                    verdict = "FAKE"
+                    confidence = 80
+                elif "correct" in response_lower or "true" in response_lower or "real" in response_lower:
+                    verdict = "REAL"
+                    confidence = 80
+            
+            return {
+                'success': True,
+                'verdict': verdict,
+                'confidence': confidence,
+                'full_response': content,
+                'reasoning': content,
+                'sources': []
+            }
+        else:
+            return {
+                'success': False,
+                'error': f"API Error: {response.status_code} - {response.text}"
+            }
+            
+    except requests.exceptions.Timeout:
+        return {
+            'success': False,
+            'error': 'Request timed out. Please try again.'
+        }
     except Exception as e:
         logger.error(f"Groq API error: {e}")
         return {

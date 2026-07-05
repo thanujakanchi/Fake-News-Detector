@@ -15,17 +15,6 @@
                 required
             >{{ input_text if input_text else '' }}</textarea>
 
-            <!-- Groq AI Toggle -->
-            <div style="margin: 12px 0;">
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; color: #94a3b8; font-size: 14px;">
-                    <input type="checkbox" name="use_groq" {% if use_groq %}checked{% endif %}>
-                    🤖 Enable Groq AI Web Search
-                </label>
-                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">
-                    Searches the web and analyzes results using AI
-                </small>
-            </div>
-
             <button type="submit" class="detect-btn">🔍 Analyze Text</button>
         </form>
 
@@ -47,8 +36,8 @@
                 </div>
                 {% if groq_used %}
                 <div class="result-item" style="grid-column: 1 / -1;">
-                    <label>🤖 Groq AI Analysis</label>
-                    <div class="value" style="font-size: 13px; color: #38bdf8;">Verified using Groq AI web search</div>
+                    <label>🤖 AI Analysis</label>
+                    <div class="value" style="font-size: 13px; color: #38bdf8;">Verified using AI web search</div>
                 </div>
                 {% endif %}
             </div>

@@ -90,7 +90,7 @@ def home():
 
 @app.route('/detector', methods=['GET', 'POST'])
 def detector():
-    """News detector page with Groq AI integration."""
+    """News detector page with Groq AI always enabled."""
     prediction = ""
     category = ""
     reason = ""
@@ -103,7 +103,6 @@ def detector():
 
     if request.method == 'POST':
         input_text = request.form.get('news', '').strip()
-        use_groq = request.form.get('use_groq', 'off') == 'on'
         
         is_valid, error_message, cleaned_text = validate_input(input_text)
         
@@ -138,48 +137,47 @@ def detector():
                     groq_used=False
                 )
             
-            # ===== STEP 2: GROQ AI WEB SEARCH (IF ENABLED) =====
-            if use_groq:
-                logger.info(f"Using Groq AI to verify: {cleaned_text}")
-                groq_result = detect_with_groq(cleaned_text)
+            # ===== STEP 2: GROQ AI WEB SEARCH (ALWAYS ENABLED) =====
+            logger.info(f"AI to verify: {cleaned_text}")
+            groq_result = detect_with_groq(cleaned_text)
+            
+            if groq_result['success']:
+                groq_used = True
+                groq_response = groq_result['full_response']
+                sources = groq_result.get('sources', [])
                 
-                if groq_result['success']:
-                    groq_used = True
-                    groq_response = groq_result['full_response']
-                    sources = groq_result.get('sources', [])
-                    
-                    verdict = groq_result.get('verdict', 'UNCERTAIN')
-                    confidence = groq_result.get('confidence', 50)
-                    
-                    if verdict == 'REAL':
-                        prediction = f"✅ Real News (AI Verified)"
-                        prediction_value = 1
-                    elif verdict == 'FAKE':
-                        prediction = f"❌ Fake News (AI Verified)"
-                        prediction_value = 0
-                    else:
-                        prediction = f"⚠️ Uncertain (AI Analysis)"
-                        prediction_value = 0
-                    
-                    reason = groq_result.get('reasoning', 'AI analysis complete. See full response below.')
-                    category = detect_category(cleaned_text, CATEGORY_KEYWORDS)
-                    
-                    analytics.record_prediction(prediction_value, category)
-                    
-                    return render_template(
-                        'detector.html',
-                        prediction=prediction,
-                        category=category,
-                        reason=reason,
-                        confidence=confidence,
-                        input_text=input_text,
-                        error=error,
-                        groq_used=groq_used,
-                        groq_response=groq_response,
-                        sources=sources
-                    )
+                verdict = groq_result.get('verdict', 'UNCERTAIN')
+                confidence = groq_result.get('confidence', 50)
+                
+                if verdict == 'REAL':
+                    prediction = f"✅ Real News (AI Verified)"
+                    prediction_value = 1
+                elif verdict == 'FAKE':
+                    prediction = f"❌ Fake News (AI Verified)"
+                    prediction_value = 0
                 else:
-                    flash(f'Groq API Error: {groq_result.get("error", "Unknown error")}', 'danger')
+                    prediction = f"⚠️ Uncertain (AI Analysis)"
+                    prediction_value = 0
+                
+                reason = groq_result.get('reasoning', 'AI analysis complete. See full response below.')
+                category = detect_category(cleaned_text, CATEGORY_KEYWORDS)
+                
+                analytics.record_prediction(prediction_value, category)
+                
+                return render_template(
+                    'detector.html',
+                    prediction=prediction,
+                    category=category,
+                    reason=reason,
+                    confidence=confidence,
+                    input_text=input_text,
+                    error=error,
+                    groq_used=groq_used,
+                    groq_response=groq_response,
+                    sources=sources
+                )
+            else:
+                flash(f'Groq API Error: {groq_result.get("error", "Unknown error")}', 'danger')
             
             # ===== STEP 3: CHECK KNOWN FACTS =====
             category = detect_category(cleaned_text, CATEGORY_KEYWORDS)
