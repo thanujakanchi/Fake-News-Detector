@@ -60,8 +60,10 @@ def initialize_model():
             classifier.save(MODEL_PATH, VECTORIZER_PATH)
             logger.info(f"Training completed with accuracy: {metrics['accuracy']:.4f}")
     except Exception as e:
-        logger.error(f"Error initializing model: {e}")
-        raise
+        logger.warning(f"Failed to load model, retraining... Error: {e}")
+        metrics = classifier.train(FAKE_DATASET_PATH, TRUE_DATASET_PATH)
+        classifier.save(MODEL_PATH, VECTORIZER_PATH)
+        logger.info(f"Retraining completed with accuracy: {metrics['accuracy']:.4f}")
 
 
 def validate_input(text: str) -> tuple:
