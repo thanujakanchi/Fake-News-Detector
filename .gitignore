@@ -8,7 +8,10 @@ __pycache__/
 flask_session/
 
 
-.env
+
+(venv) C:\Users\navee\OneDrive\Desktop\thanuja\Fake-News-Detector>git rm -r --cached venv/
+fatal: pathspec 'venv/' did not match any files
+
 # C extensions
 *.so
 
